@@ -79,17 +79,30 @@ class FileUploader(QWidget):
 
     def set_harm(self, reader):
         data = GXDLMSData('0.0.2.164.6.255')
-        new_arrays = reader.read(data, 2)
-        data.setDataType(2, DataType.STRUCTURE)
+        try:
+            new_arrays = reader.read(data, 2)
+            data.setDataType(2, DataType.STRUCTURE)
 
-        for z in range(6):
-            for i in range(30):
-                new_arrays[z][i] = GXUInt16(65535)
+            for z in range(6):
+                for i in range(30):
+                    if z in [0, 1, 2]:
+                        if i == 10:
+                            new_arrays[z][i] = GXUInt16(17)
+                        elif i == 12:
+                            new_arrays[z][i] = GXUInt16(14)
+                        else:
+                            new_arrays[z][i] = GXUInt16(65535)
+                    else:
+                        new_arrays[z][i] = GXUInt16(65535)
 
-        data.value = new_arrays
-        reader.write(data, 2)
+            data.value = new_arrays
+            reader.write(data, 2)
 
-        actual_arrays = reader.read(data, 2)
+            actual_arrays = reader.read(data, 2)
+            with open('test.txt', 'w', encoding='utf-8') as file:
+                    file.write(actual_arrays)
+        except Exception as e:
+            self.update_text(f"Ошибка при записи гармоники >> {e}", "red")
 
 
     def set_ftp(self, reader):
@@ -127,7 +140,7 @@ class FileUploader(QWidget):
             self.update_text(f"Установленное значение password [{ftp_server_password.logicalName}] = {set_password}.",
                          "green")
         except Exception as e:
-            self.update_text("Ошибка при записи параметров FTP >>", e)
+            self.update_text(f"Ошибка при записи параметров FTP >> {e}", "red")
 
     def write_value(self, data, reader):
         try:
