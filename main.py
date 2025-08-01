@@ -99,8 +99,26 @@ class FileUploader(QWidget):
             reader.write(data, 2)
 
             actual_arrays = reader.read(data, 2)
+
             with open('test.txt', 'w', encoding='utf-8') as file:
                     file.write(actual_arrays)
+
+            try:
+                for z in range(6):
+                    for i in range(30):
+                        if z in [0, 1, 2]:
+                            if i == 10:
+                                assert new_arrays[z][i] == 17
+                            elif i == 12:
+                                assert new_arrays[z][i] == GXUInt16(14)
+                            else:
+                                assert new_arrays[z][i] == GXUInt16(65535)
+                        else:
+                            assert  new_arrays[z][i] == GXUInt16(65535)
+            except AssertionError as e:
+                self.update_text(f"Ошибка при записи гармоники с координатами "
+                                 f"[гармоника №{z + 1}-{i + 1}] >> {e}", "red")
+
         except Exception as e:
             self.update_text(f"Ошибка при записи гармоники >> {e}", "red")
 
