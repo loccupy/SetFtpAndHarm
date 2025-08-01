@@ -49,7 +49,7 @@ class GXDLMSClient(object):
     def __init__(self, useLogicalNameReferencing=True, clientAddress=16, serverAddress=1,
                  forAuthentication=Authentication.NONE, password=None, interfaceType=InterfaceType.HDLC):
         # DLMS settings.
-        self.settings = GXDLMSSettings(False)
+        self.settings = GXDLMSSettings(False, 1)
         self.manufacturerId = None
         self.settings.setUseLogicalNameReferencing(useLogicalNameReferencing)
         self.clientAddress = clientAddress

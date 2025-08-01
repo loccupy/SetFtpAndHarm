@@ -8,12 +8,8 @@ from PyQt5.QtWidgets import QWidget, QApplication, QLineEdit, QTextEdit, QPushBu
 from gurux_dlms.enums import DataType
 from gurux_dlms.objects import GXDLMSData
 
+from libs.configur import server, login, folder, password
 from libs.connect import connect
-
-server = '192.168.15.69:21'
-login = 'ftpuser'
-password = '9J1Np_i6lE'
-folder = '/Harmonics/'
 
 
 class EmittingStream(QObject):
@@ -68,6 +64,39 @@ class FileUploader(QWidget):
             settings.media.open()
             reader.initializeConnection()
 
+            self.set_ftp(reader)
+
+            self.set_harm(reader)
+
+            reader.close()
+        except Exception as e:
+            settings.media.close()
+            self.update_text(f"Ошибка {e}.", "red")
+            print()
+            self.update_text(f"Проверьте настройки.", "red")
+
+
+    def set_harm(self, reader):
+        data = GXDLMSData('0.0.2.164.6.255')
+        new_arrays = open_and_close_connection.read(data, 2)
+        data.setDataType(2, DataType.STRUCTURE)
+
+        # for z in range(6):
+        #     for i in range(30):
+        #         new_arrays[z][i] = GXUInt16(random.randint(0, 65535))
+
+        for z in range(6):
+            for i in range(30):
+                new_arrays[z][i] = GXUInt16(65535)
+
+        data.value = new_arrays
+        open_and_close_connection.write(data, 2)
+
+        actual_arrays = open_and_close_connection.read(data, 2)
+
+
+    def set_ftp(self, reader):
+        try:
             ftp_server = GXDLMSData('0.0.2.164.1.255')
             ftp_server_login = GXDLMSData('0.0.2.164.2.255')
             ftp_server_password = GXDLMSData('0.0.2.164.3.255')
@@ -85,11 +114,6 @@ class FileUploader(QWidget):
             ftp_server_folder.value = folder
             ftp_server_folder.setDataType(2, DataType.STRING)
 
-            # reader.write(ftp_server_password, 2)
-            # reader.write(ftp_server, 2)
-            # reader.write(ftp_server_login, 2)
-            # reader.write(ftp_server_folder, 2)
-
             self.write_value(ftp_server_password, reader)
             self.write_value(ftp_server, reader)
             self.write_value(ftp_server_login, reader)
@@ -100,22 +124,35 @@ class FileUploader(QWidget):
             set_folder = reader.read(ftp_server_folder, 2)
             set_password = reader.read(ftp_server_password, 2)
 
-            # assert set_password == password
-            # assert set_server == server
-            # assert set_login == login
-            # assert set_folder == folder
-
             self.update_text(f"Установленное значение server [{ftp_server.logicalName}] = {set_server}.", "green")
             self.update_text(f"Установленное значение login [{ftp_server_login.logicalName}] = {set_login}.", "green")
             self.update_text(f"Установленное значение folder [{ftp_server_folder.logicalName}] = {set_folder}.", "green")
-            self.update_text(f"Установленное значение password [{ftp_server_password.logicalName}] = {set_password}.", "green")
-
-            reader.close()
+            self.update_text(f"Установленное значение password [{ftp_server_password.logicalName}] = {set_password}.",
+                         "green")
         except Exception as e:
-            settings.media.close()
-            self.update_text(f"Ошибка {e}.", "red")
-            print()
-            self.update_text(f"Проверьте настройки.", "red")
+            self.update_text("Ошибка при записи параметров FTP >>", e)
+
+    def write_value(self, data, reader):
+        try:
+            reader.write(data, 2)
+        except Exception as e:
+            self.update_text(f'Объект {data.logicalName}, "не записался, ошибка >> {e}', "red")
+
+    def update_text(self, message, color):
+        self.text_edit.append(f"\n<font color={color} size='4'>{message}</font>\n")
+
+    def redirect_stdout(self):
+        self.stream = EmittingStream()
+        sys.stdout = self.stream
+        sys.stderr = self.stream
+
+    def on_text_written(self, text):
+        cursor = self.text_edit.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertText(text)
+        self.text_edit.setTextCursor(cursor)
+        self.text_edit.ensureCursorVisible()
+        QApplication.processEvents()
 
     def applyDarkTheme(self):
         # Определяем стили для темной темы
@@ -156,28 +193,6 @@ class FileUploader(QWidget):
 
         # Применяем стиль к приложению
         self.setStyleSheet(dark_stylesheet)
-
-    def write_value(self, data, reader):
-        try:
-            reader.write(data, 2)
-        except Exception as e:
-            self.update_text(f'Объект {data.logicalName}, "не записался, ошибка >> {e}', "red")
-
-    def update_text(self, message, color):
-        self.text_edit.append(f"\n<font color={color} size='4'>{message}</font>\n")
-
-    def redirect_stdout(self):
-        self.stream = EmittingStream()
-        sys.stdout = self.stream
-        sys.stderr = self.stream
-
-    def on_text_written(self, text):
-        cursor = self.text_edit.textCursor()
-        cursor.movePosition(QTextCursor.End)
-        cursor.insertText(text)
-        self.text_edit.setTextCursor(cursor)
-        self.text_edit.ensureCursorVisible()
-        QApplication.processEvents()
 
 
 def main():
