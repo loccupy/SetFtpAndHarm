@@ -5,6 +5,7 @@ from PyQt5 import uic
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QIntValidator
 from PyQt5.QtWidgets import QWidget, QApplication, QLineEdit, QTextEdit, QPushButton, QMessageBox
+from gurux_dlms import GXUInt16
 from gurux_dlms.enums import DataType
 from gurux_dlms.objects import GXDLMSData
 
@@ -78,21 +79,17 @@ class FileUploader(QWidget):
 
     def set_harm(self, reader):
         data = GXDLMSData('0.0.2.164.6.255')
-        new_arrays = open_and_close_connection.read(data, 2)
+        new_arrays = reader.read(data, 2)
         data.setDataType(2, DataType.STRUCTURE)
-
-        # for z in range(6):
-        #     for i in range(30):
-        #         new_arrays[z][i] = GXUInt16(random.randint(0, 65535))
 
         for z in range(6):
             for i in range(30):
                 new_arrays[z][i] = GXUInt16(65535)
 
         data.value = new_arrays
-        open_and_close_connection.write(data, 2)
+        reader.write(data, 2)
 
-        actual_arrays = open_and_close_connection.read(data, 2)
+        actual_arrays = reader.read(data, 2)
 
 
     def set_ftp(self, reader):
