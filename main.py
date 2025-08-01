@@ -5,7 +5,7 @@ from PyQt5 import uic
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QIntValidator
 from PyQt5.QtWidgets import QWidget, QApplication, QLineEdit, QTextEdit, QPushButton, QMessageBox
-from gurux_dlms import GXUInt16
+from gurux_dlms import GXUInt16, GXUInt32
 from gurux_dlms.enums import DataType
 from gurux_dlms.objects import GXDLMSData
 
@@ -69,12 +69,44 @@ class FileUploader(QWidget):
 
             self.set_harm(reader)
 
+            self.short_circuit_detector(reader)
+
             reader.close()
         except Exception as e:
             settings.media.close()
             self.update_text(f"Ошибка {e}.", "red")
             print()
             self.update_text(f"Проверьте настройки.", "red")
+
+
+    def short_circuit_detector(self, reader):
+        data = GXDLMSData('0.0.2.164.11.255')
+        try:
+            value = 65535
+            array_data = reader.read(data, 2)
+
+            data.setDataType(2, DataType.STRUCTURE)
+
+            for z in range(6):
+                array_data[z] = GXUInt32(value)
+
+            data.value = array_data
+
+            reader.write(data, 2)
+
+            actual = reader.read(data, 2)
+
+            try:
+                for z in range(6):
+                    assert actual[z] == GXUInt32(value)
+                self.update_text(f"Пороги детектора короткого замыкания успешно записаны", "green")
+            except AssertionError as e:
+                self.update_text(f"Ошибка значения поля {z} Порогов детектора кз >> {e}", "red")
+
+        except Exception as e:
+            self.update_text(f"Ошибка при записи порогов детектора короткого замыкания >> {e}", "red")
+
+
 
     def set_harm(self, reader):
         data = GXDLMSData('0.0.2.164.6.255')
