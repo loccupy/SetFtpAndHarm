@@ -1,14 +1,6 @@
 from libs.GXDLMSReader import GXDLMSReader
 from libs.GXSettings import GXSettings
 
-# global COM
-# global ADDRESS
-# global BAUD
-
-# COM = 3
-# ADDRESS = 0
-# BAUD = 115200
-
 
 def connect(com):
     settings = GXSettings()

@@ -76,7 +76,6 @@ class FileUploader(QWidget):
             print()
             self.update_text(f"Проверьте настройки.", "red")
 
-
     def set_harm(self, reader):
         data = GXDLMSData('0.0.2.164.6.255')
         try:
@@ -111,7 +110,7 @@ class FileUploader(QWidget):
                             else:
                                 assert actual_arrays[z][i] == 65535
                         else:
-                            assert  actual_arrays[z][i] == 65535
+                            assert actual_arrays[z][i] == 65535
                 self.update_text(f"Гармоники успешно записаны", "green")
 
             except AssertionError as e:
@@ -120,7 +119,6 @@ class FileUploader(QWidget):
 
         except Exception as e:
             self.update_text(f"Ошибка при записи гармоники >> {e}", "red")
-
 
     def set_ftp(self, reader):
         try:
@@ -153,9 +151,10 @@ class FileUploader(QWidget):
 
             self.update_text(f"Установленное значение server [{ftp_server.logicalName}] = {set_server}.", "green")
             self.update_text(f"Установленное значение login [{ftp_server_login.logicalName}] = {set_login}.", "green")
-            self.update_text(f"Установленное значение folder [{ftp_server_folder.logicalName}] = {set_folder}.", "green")
+            self.update_text(f"Установленное значение folder [{ftp_server_folder.logicalName}] = {set_folder}.",
+                             "green")
             self.update_text(f"Установленное значение password [{ftp_server_password.logicalName}] = {set_password}.",
-                         "green")
+                             "green")
         except Exception as e:
             self.update_text(f"Ошибка при записи параметров FTP >> {e}", "red")
 
