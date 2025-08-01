@@ -117,7 +117,7 @@ class FileUploader(QWidget):
                             assert  new_arrays[z][i] == GXUInt16(65535)
             except AssertionError as e:
                 self.update_text(f"Ошибка при записи гармоники с координатами "
-                                 f"[гармоника №{z + 1}-{i + 1}] >> {e}", "red")
+                                 f"[структура №{z + 1}- строчка №{i + 1}] >> {e}", "red")
 
         except Exception as e:
             self.update_text(f"Ошибка при записи гармоники >> {e}", "red")
